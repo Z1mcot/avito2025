@@ -17,4 +17,15 @@ struct Pagination: URLQueryConvertable {
     
     let offset: Int
     let limit: Int
+    
+    init (offset: Int = 0, limit: Int = pageSize) {
+        self.offset = offset
+        self.limit = limit
+    }
+    
+    static let pageSize = 12
+    
+    func next() -> Pagination {
+        Pagination(offset: offset + Pagination.pageSize, limit: limit)
+    }
 }

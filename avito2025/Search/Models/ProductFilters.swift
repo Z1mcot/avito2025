@@ -7,16 +7,15 @@
 
 import Foundation
 
-struct ProductFilters: URLQueryConvertable {
-    let title: String?
+struct ProductFilters: URLQueryConvertable, Equatable, Hashable {
+    var title: String?
     
-    let targetPrice: Int?
+    var targetPrice: Int?
     
-    let minPrice: Int
-    let maxPrice: Int?
+    var minPrice: Int?
+    var maxPrice: Int?
     
-    let category: Int?
-    
+    var categoryId: Int?
     
     
     init(title: String?, targetPrice: Int?, category: Int?) {
@@ -27,10 +26,10 @@ struct ProductFilters: URLQueryConvertable {
         self.minPrice = 0
         self.maxPrice = nil
         
-        self.category = category
+        self.categoryId = category
     }
     
-    init(title: String?, maxPrice: Int?, category: Int?, minPrice: Int = 0) {
+    init(title: String?, maxPrice: Int?, category: Int?, minPrice: Int?) {
         self.title = title
         
         self.targetPrice = nil
@@ -38,7 +37,7 @@ struct ProductFilters: URLQueryConvertable {
         self.minPrice = minPrice
         self.maxPrice = maxPrice
         
-        self.category = category
+        self.categoryId = category
     }
     
     
@@ -54,16 +53,38 @@ struct ProductFilters: URLQueryConvertable {
         
         if let targetPrice = targetPrice {
             parameters.append(URLQueryItem(name: "price", value: "\(targetPrice)"))
-        } else if let maxPrice = maxPrice {
-            parameters.append(URLQueryItem(name: "min_price", value: "\(minPrice)"))
-            parameters.append(URLQueryItem(name: "max_price", value: "\(maxPrice)"))
+        } else {
+            if let minPrice = minPrice {
+                parameters.append(URLQueryItem(name: "price_min", value: "\(minPrice)"))
+            }
+            
+            if let maxPrice = maxPrice {
+                parameters.append(URLQueryItem(name: "price_max", value: "\(maxPrice)"))
+            }
         }
         
-        if let category = category {
+        if let category = categoryId {
             parameters.append(URLQueryItem(name: "categoryId", value: "\(category)"))
         }
         
         
         return parameters
+    }
+    
+    static func from(dbModel: LastSearchQuery) -> ProductFilters {
+        if dbModel.maxPrice != dbModel.minPrice {
+            return ProductFilters(
+                title: dbModel.searchQuery,
+                maxPrice: Int(dbModel.maxPrice),
+                category: Int(dbModel.categoryId),
+                minPrice: Int(dbModel.minPrice)
+            )
+        }
+        
+        return ProductFilters(
+            title: dbModel.searchQuery,
+            targetPrice: Int(dbModel.targetPrice),
+            category: Int(dbModel.categoryId)
+        )
     }
 }

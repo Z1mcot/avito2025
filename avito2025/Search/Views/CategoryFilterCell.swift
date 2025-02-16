@@ -12,6 +12,7 @@ class CategoryFilterCell: UICollectionViewCell {
     @IBOutlet weak var labelBackground: UIView!
     @IBOutlet weak var label: UILabel!
     
+    private var category: Category!
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -19,8 +20,9 @@ class CategoryFilterCell: UICollectionViewCell {
         labelBackground.layer.cornerRadius = 16
     }
     
-    func configure(with text: String) {
-        label.text = text
+    func configure(with category: Category) {
+        self.category = category
+        label.text = category.name
     }
     
     func selectCell() {

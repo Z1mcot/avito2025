@@ -9,24 +9,27 @@ import Foundation
 
 enum ProductRouter: URLRequestConvertable {
     case getProducts(pagination: Pagination, filters: ProductFilters)
+    case getProductById(id: Int)
     
     var endpoint: String {
         switch self {
         case .getProducts:
             "/products"
+        case .getProductById(let id):
+            "/products/\(id)"
         }
     }
     
     var method: URLMethod {
         switch self {
-        case .getProducts:
+        case .getProducts, .getProductById(_):
             return .get
         }
     }
     
     var body: Data? {
         switch self {
-        case .getProducts:
+        default:
             return nil
         }
     }
@@ -36,6 +39,8 @@ enum ProductRouter: URLRequestConvertable {
         case .getProducts(let pagination, let filters):
             let p = filters.convertToQueryParams() + pagination.convertToQueryParams()
             return p
+        default:
+            return []
         }
-    }
+    }    
 }

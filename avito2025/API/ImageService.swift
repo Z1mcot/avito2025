@@ -9,6 +9,8 @@ import Foundation
 import UIKit
 
 class ImageService {
+    private let cache = NSCache<NSString, UIImage>()
+    
     private static let sharedServiceInstance = ImageService()
     
     static var shared: ImageService { sharedServiceInstance }
@@ -18,12 +20,16 @@ class ImageService {
     private func downloadImage(from url: URL) async throws -> Data {
         print("Started downloading \(url)")
         
-        let (imageData, response) = try await URLSession.shared.data(from: url)
+        let (imageData, _) = try await URLSession.shared.data(from: url)
         
         return imageData
     }
     
     func getImage(from urlString: String) async throws -> UIImage {
+        if let cachedImage = cache.object(forKey: urlString as NSString) {
+            return cachedImage
+        }
+        
         guard let url = URL(string: urlString) else {
             throw NetworkError.invalidUrl
         }
@@ -33,12 +39,23 @@ class ImageService {
             throw NetworkError.badResponse
         }
         
+        cache.setObject(image, forKey: urlString as NSString)
+        
         return image
     }
     
-    func saveImage(_ imageData: Data) -> Bool {
-    #warning("save image not implemented")
+    func getImage(from url: URL) async throws -> UIImage {
+        if let cachedImage = cache.object(forKey: url.absoluteString as NSString) {
+            return cachedImage
+        }
         
-        return true
+        let imageData = try await downloadImage(from: url)
+        guard let image = UIImage(data: imageData) else {
+            throw NetworkError.badResponse
+        }
+        
+        cache.setObject(image, forKey: url.absoluteString as NSString)
+        
+        return image
     }
 }

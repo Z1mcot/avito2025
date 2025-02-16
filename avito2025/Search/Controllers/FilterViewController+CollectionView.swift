@@ -20,48 +20,54 @@ extension FilterViewController: UICollectionViewDataSource {
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return mockCategories.count
+        return categories.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryFilterCell.nibIdentifier, for: indexPath) as! CategoryFilterCell
         
-        cell.configure(with: mockCategories[indexPath.item])
+        cell.configure(with: categories[indexPath.item])
+        
+        if filters.categoryId == categories[indexPath.item].id {
+            cell.selectCell()
+        }
         
         return cell
     }
 }
 
 extension FilterViewController: UICollectionViewDelegateFlowLayout {
-    
     func collectionView(_ collectionView: UICollectionView, didDeselectItemAt indexPath: IndexPath) {
-        print("deselected")
-        
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryFilterCell.nibIdentifier, for: indexPath) as! CategoryFilterCell
+        let cell = collectionView.cellForItem(at: indexPath) as! CategoryFilterCell
         
         cell.deselectCell()
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        let text = mockCategories[indexPath.item]
+        let cell = collectionView.cellForItem(at: indexPath) as! CategoryFilterCell
         
-        print("selected")
+        if filters.categoryId == categories[indexPath.item].id {
+            cell.isSelected = false
+            filters.categoryId = nil
+            cell.deselectCell()
+            return
+        }
         
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CategoryFilterCell.nibIdentifier, for: indexPath) as! CategoryFilterCell
+        filters.categoryId = categories[indexPath.item].id
         
         cell.selectCell()
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return 16
+        return 4
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return 6
+        return 0
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let text = mockCategories[indexPath.item]
+        let text = categories[indexPath.item].name
             
         // Calculate text width
         let textWidth = text.size(withAttributes: [.font: UIFont.systemFont(ofSize: 20)]).width
