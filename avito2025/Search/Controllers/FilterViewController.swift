@@ -39,8 +39,10 @@ class FilterViewController: UIViewController {
         if let price = filters.targetPrice {
             priceModeControl.selectedSegmentIndex = 1
             minPriceField.text = "\(price)"
+            maxPriceField.isHidden = true
         } else if let price = filters.minPrice {
             minPriceField.text = "\(price)"
+            maxPriceField.isHidden = false
         }
         
         minPriceField.addDoneCancelToolbar(
