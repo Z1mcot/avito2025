@@ -51,7 +51,7 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
         collectionView.deselectItem(at: indexPath, animated: false)
         
         switch status {
-        case .loaded(let products, _):
+        case .loaded(_, _):
             selectedId = products[indexPath.item].id
             performSegue(withIdentifier: ItemCardViewController.segueFromSearchId, sender: self)
         default :
@@ -68,9 +68,18 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
         let contentHeight = scrollView.contentSize.height
         let scrollViewHeight = scrollView.frame.height
         
-        if case .loaded(_, let filters) = status,
-           offsetY > contentHeight * 0.8 - scrollViewHeight {
-            status = .loading(filters)
+        switch status {
+        case .loaded(_, let filters):
+            if !savedThisQuery && !filters.isEmpty {
+                try? searchRepository.saveQuery(filters)
+                savedThisQuery = true
+            }
+            
+            if offsetY > contentHeight * 0.8 - scrollViewHeight {
+                status = .loading(filters)
+            }
+        default:
+            return
         }
     }
 }

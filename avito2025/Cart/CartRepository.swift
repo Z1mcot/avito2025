@@ -79,6 +79,10 @@ class CartRepository {
         }
     }
     
+    func movePosition(item: CartItem, to destination: Int) throws {
+        try dbService.update(item, newPosition: destination)
+    }
+    
     func clearCart() throws {
         try dbService.delete(all: CartItem.self)
         

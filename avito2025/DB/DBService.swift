@@ -100,18 +100,10 @@ class DBService {
         }
     }
     
-    func update(_ item: Product, newPosition: Int? = nil) throws {
+    func update(_ item: Product) throws {
         let entity = try getById(item) as! CartItem
         
         entity.quantity = Int64(item.quantity)
-        
-        if let position = newPosition {
-            let anotherItem = Product(id: position, title: "", price: 0, description: "", category: Category(id: 0, name: ""), images: [])
-            
-            let anotherEntity = try getById(anotherItem) as! CartItem
-            let (firstPos, secondPos) = (entity.position, anotherEntity.position)
-            (anotherEntity.position, entity.position) = (firstPos, secondPos)
-        }
         
         do {
             try container.viewContext.save()
@@ -128,7 +120,26 @@ class DBService {
     }
     
     // MARK: - CartItem methods
-    func update(_ item: CartItem) throws {
+    func update(_ item: CartItem, newPosition: Int? = nil) throws {
+        if let newPosition = newPosition,
+           item.position != newPosition{
+            let request = CartItem.fetchRequest()
+            
+            if item.position < newPosition {
+                request.predicate = NSPredicate(format: "position > %d AND position <= %d", item.position, newPosition)
+            } else {
+                request.predicate = NSPredicate(format: "position >= %d AND position < %d", newPosition, item.position)
+            }
+            
+            let affectedItems = try container.viewContext.fetch(request)
+            
+            for affectedItem in affectedItems {
+                affectedItem.position += (newPosition > item.position) ? -1 : 1
+            }
+            
+            item.position = Int64(newPosition)
+        }
+        
         do {
             try container.viewContext.save()
         } catch {
@@ -144,14 +155,14 @@ class DBService {
     
     // MARK: - SearchQueries methods
     
-    func getById(_ query: ProductFilters) throws -> NSManagedObject {
-        if query.title == nil {
+    func getById(_ query: ProductFilters) throws -> NSManagedObject {        
+        guard let queryTitle = query.title else {
             throw DBError.itemNotFound
         }
         
         let fetchRequest = LastSearchQuery.fetchRequest()
         
-        fetchRequest.predicate = NSPredicate(format: "queryHash = %d", query.hashValue)
+        fetchRequest.predicate = NSPredicate(format: "searchQuery = %@", queryTitle)
         
         let fetchedEntities = try container.viewContext.fetch(fetchRequest)
         
@@ -167,9 +178,8 @@ class DBService {
         
         entity.searchQuery = query.title
         entity.lastAccess = Date.now
-        if let categoryId = query.categoryId {
-            entity.categoryId = Int64(categoryId)
-        }
+        
+        entity.categoryId = query.categoryId == nil ? -1 : Int64(query.categoryId!)
         
         if let targetPrice = query.targetPrice {
             entity.targetPrice = Int64(targetPrice)
@@ -181,8 +191,6 @@ class DBService {
                 entity.maxPrice = Int64(maxPrice)
             }
         }
-        
-        entity.queryHash = Int64(query.hashValue)
         
         do {
             try container.viewContext.save()

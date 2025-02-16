@@ -19,6 +19,7 @@ class SearchViewController: UIViewController {
     // MARK: dependencies
     var productRepository: ProductRepository!
     var cartRepository: CartRepository!
+    var searchRepository: SearchRepository!
     
     
     // MARK: outlets
@@ -30,16 +31,22 @@ class SearchViewController: UIViewController {
     @IBOutlet weak var retryButton: UIButton!
     
     @IBOutlet weak var cartButton: UIButton!
+    @IBOutlet weak var searchHistory: UITableView!
     
     // MARK: model
     private var searchText: String = ""
-    private var currentPage: Pagination!
+    var currentPage: Pagination!
     var selectedId: Int!
     var canFetchMore: Bool = true
+    
+    var savedThisQuery: Bool = false
     
     var cartLookupTable: [Int64: Int] = [:]
     var products: [Product] = []
     var categories: [Category] = []
+    var categoriesLookupTable: [Int: String] = [:]
+    
+    var lastQueries: [LastSearchQuery] = []
     
     var status: SearchStatus = .initial {
         
@@ -61,6 +68,30 @@ class SearchViewController: UIViewController {
         }
     }
     
+    // MARK: ui setup
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        configureDependencies()
+        status = .initial
+        
+        setupProductCollection()
+        setupSearchBar()
+        setupTableView()
+        
+        let filters = ProductFilters(title: nil, maxPrice: nil, category: nil, minPrice: nil)
+        currentPage = Pagination()
+        
+        status = .loading(filters)
+    }
+
+    func setupSearchBar() {
+        searchBar.delegate = self
+        searchBar.setImage(UIImage(systemName: "slider.horizontal.3"), for: .bookmark, state: .normal)
+        searchBar.setImage(UIImage(systemName: "slider.horizontal.3"), for: .bookmark, state: .disabled)
+        searchBar.isEnabled = false
+    }
+    
     private func configureDependencies() {
         let networkService = NetworkService()
         let dbService = DBService()
@@ -71,6 +102,10 @@ class SearchViewController: UIViewController {
         cartRepository = CartRepository(dbService: dbService)
         
         cartRepository.addObserver(self, id: self.hash)
+        
+        searchRepository = SearchRepository(dbService: dbService)
+        
+        searchRepository.observer = self
     }
     
     func fetchProducts(_ filters: ProductFilters) async {
@@ -91,41 +126,23 @@ class SearchViewController: UIViewController {
         }
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        configureDependencies()
-        status = .initial
-        
-        setupProductCollection()
-        setupSearchBar()
-        
-        let filters = ProductFilters(title: nil, maxPrice: nil, category: nil, minPrice: nil)
-        currentPage = Pagination()
-        
-        status = .loading(filters)
-    }
-    
-    deinit {
-        cartRepository.removeObserver(id: self.hash)
-    }
-
-    func setupSearchBar() {
-        searchBar.delegate = self
-        searchBar.setImage(UIImage(systemName: "slider.horizontal.3"), for: .bookmark, state: .normal)
-        searchBar.setImage(UIImage(systemName: "slider.horizontal.3"), for: .bookmark, state: .disabled)
-        searchBar.isEnabled = false
-    }
-    
 // MARK: actions
     @IBAction func goToCart(_ sender: Any) {
         performSegue(withIdentifier: CartViewController.segueId, sender: self)
     }
     
+    @IBAction func retrySearch(_ sender: Any) {
+        guard case .error(_, let productFilters) = status else {
+            return
+        }
+        
+        status = .loading(productFilters)
+    }
+    
     
 // MARK: segue preparations
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        switch segue.identifier{
+        switch segue.identifier {
         case FilterViewController.segueId:
             prepareFilterSegue(segue)
         case ItemCardViewController.segueFromSearchId:
@@ -149,15 +166,25 @@ class SearchViewController: UIViewController {
     }
     
     private func prepareItemCardSegue(_ segue: UIStoryboardSegue) {
-        let itemCartVC = segue.destination as! ItemCardViewController
+        switch status {
+        case let .loaded(_, filters):
+            if !savedThisQuery && !filters.isEmpty {
+                try? searchRepository.saveQuery(filters)
+                savedThisQuery = true
+            }
+        default:
+            break
+        }
         
-        itemCartVC.injectDependecies(productId: selectedId, cartRepository: cartRepository, productRepository: productRepository)
+        let itemCardVC = segue.destination as! ItemCardViewController
+        
+        itemCardVC.injectDependecies(productId: selectedId, cartRepository: cartRepository, productRepository: productRepository)
     }
     
     private func prepareCartSegue(_ segue: UIStoryboardSegue) {
         let cartVC = segue.destination as! CartViewController
         
-        cartVC.injectDependencies(repository: cartRepository)
+        cartVC.injectDependencies(cartRepository: cartRepository, productRepository: productRepository)
     }
 }
 
@@ -166,7 +193,12 @@ extension SearchViewController {
     private func fetchCategories() {
         Task {
             let categories = try? await productRepository.getCategories()
+            
             self.categories = categories ?? []
+            
+            for category in self.categories {
+                categoriesLookupTable[category.id] = category.name
+            }
         }
     }
     
@@ -190,6 +222,11 @@ extension SearchViewController {
         cartButton.setImage(cartButtonImage, for: .normal)
     }
     
+    func fetchLastQueries() {
+        let queries = searchRepository.getLastSavedQueries()
+        lastQueries = queries
+    }
+    
     func handleLoading(oldStatus: SearchStatus, currentFilters: ProductFilters) {
         productsCollection.isHidden = false
         productsCollection.isScrollEnabled = currentPage.offset != 0
@@ -210,14 +247,12 @@ extension SearchViewController {
     }
     
     func updateContent(_ items: [Product], filters: ProductFilters) {
-        DispatchQueue.main.async { [weak self] in
-            self?.searchBar.isEnabled = true
-            
-            self?.productsCollection.isHidden = false
-            self?.products.append(contentsOf: items)
-            self?.productsCollection.reloadData()
-            self?.productsCollection.isScrollEnabled = true
-        }
+        searchBar.isEnabled = true
+        
+        productsCollection.isHidden = false
+        products.append(contentsOf: items)
+        productsCollection.reloadData()
+        productsCollection.isScrollEnabled = true
     }
     
     func handleError(_ error: Error) {
@@ -230,12 +265,12 @@ extension SearchViewController {
     }
     
     func handleEmptyState() {
+        searchBar.isEnabled = true
+        
         if !products.isEmpty {
             canFetchMore = false
             return
         }
-        
-        searchBar.isEnabled = true
         
         retryButton.isHidden = true
         messageIcon.image = UIImage(systemName: "minus.magnifyingglass")
@@ -255,6 +290,18 @@ extension SearchViewController: UISearchBarDelegate {
         self.searchText = searchText
     }
     
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        cartButton.isHidden = true
+        
+        searchHistory.isHidden = false
+    }
+    
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+        cartButton.isHidden = false
+        
+        searchHistory.isHidden = true
+    }
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         searchBar.endEditing(true)
         
@@ -263,6 +310,7 @@ extension SearchViewController: UISearchBarDelegate {
             var filters = filters
             filters.title = searchText
             canFetchMore = true
+            savedThisQuery = false
             status = .loading(filters)
         default:
             return
@@ -289,9 +337,11 @@ extension SearchViewController: CartObserver {
 extension SearchViewController: ProductFilterSearchDelegate {
     func onFiltersChanged(filters: ProductFilters) {
         var filters = filters
+        
         if !searchText.isEmpty {
             filters.title = searchText
         }
+        savedThisQuery = false
         canFetchMore = true
         status = .loading(filters)
     }

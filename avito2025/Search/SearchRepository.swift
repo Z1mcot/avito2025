@@ -7,15 +7,21 @@
 
 import Foundation
 
+protocol SearchRepositoryObserver {
+    func onSearchHistoryChanged()
+}
+
 class SearchRepository {
     private let dbService: DBService
     static private let pagination = Pagination(offset: 0, limit: 5)
     
-    init(networkService: NetworkService, dbService: DBService) {
+    init(dbService: DBService) {
         self.dbService = dbService
     }
     
-    func getLastSavedQueries() -> [ProductFilters] {
+    var observer: SearchRepositoryObserver?
+    
+    func getLastSavedQueries() -> [LastSearchQuery] {
         let sort = NSSortDescriptor(key: #keyPath(LastSearchQuery.lastAccess), ascending: false)
         
         let lastSavedEntities = try? dbService.get(
@@ -24,13 +30,19 @@ class SearchRepository {
             pagination: SearchRepository.pagination
         )
         
-        return lastSavedEntities?.map { ProductFilters.from(dbModel: $0) } ?? []
+        return lastSavedEntities ?? []
     }
     
     func saveQuery(_ query: ProductFilters) throws {
+        if query.title == nil || query.title!.isEmpty {
+            return
+        }
+        
         let item = try? dbService.getById(query)
         
         item == nil ? try dbService.add(query)
                     : try dbService.update(query)
+        
+        observer?.onSearchHistoryChanged()
     }
 }

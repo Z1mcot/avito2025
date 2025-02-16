@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct ProductFilters: URLQueryConvertable, Equatable, Hashable {
+struct ProductFilters: URLQueryConvertable, Equatable {
     var title: String?
     
     var targetPrice: Int?
@@ -17,6 +17,9 @@ struct ProductFilters: URLQueryConvertable, Equatable, Hashable {
     
     var categoryId: Int?
     
+    var isEmpty: Bool {
+        return title == nil && targetPrice == nil && minPrice == nil && maxPrice == nil && categoryId == nil
+    }
     
     init(title: String?, targetPrice: Int?, category: Int?) {
         self.title = title
@@ -72,19 +75,19 @@ struct ProductFilters: URLQueryConvertable, Equatable, Hashable {
     }
     
     static func from(dbModel: LastSearchQuery) -> ProductFilters {
-        if dbModel.maxPrice != dbModel.minPrice {
+        if dbModel.targetPrice == .zero {
             return ProductFilters(
                 title: dbModel.searchQuery,
-                maxPrice: Int(dbModel.maxPrice),
-                category: Int(dbModel.categoryId),
-                minPrice: Int(dbModel.minPrice)
+                maxPrice: dbModel.maxPrice == .zero ? nil : Int(dbModel.maxPrice),
+                category: dbModel.categoryId == -1 ? nil : Int(dbModel.categoryId),
+                minPrice: dbModel.maxPrice == .zero ? nil : Int(dbModel.minPrice)
             )
         }
         
         return ProductFilters(
             title: dbModel.searchQuery,
-            targetPrice: Int(dbModel.targetPrice),
-            category: Int(dbModel.categoryId)
+            targetPrice: dbModel.targetPrice == .zero ? nil : Int(dbModel.targetPrice),
+            category: dbModel.categoryId == .zero ? nil : Int(dbModel.categoryId)
         )
     }
 }

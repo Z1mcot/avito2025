@@ -154,10 +154,10 @@ class CartItemCell: UITableViewCell {
     
     private func getImage(_ url: URL) {
         Task { [weak self] in
-            let image = try? await ImageService.shared.getImage(from: url)
+            var image = try? await ImageService.shared.getImage(from: url)
             
             if image == nil {
-                return
+                image = UIImage(named: "Placeholder")
             }
             
             DispatchQueue.main.async {

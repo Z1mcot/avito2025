@@ -15,6 +15,7 @@ class CartViewController: UIViewController {
         case loaded([CartItem])
         case clearing
         case ready([CartItem])
+        case navigating(Int)
     }
     
     // MARK: model
@@ -26,17 +27,22 @@ class CartViewController: UIViewController {
                 showEmptyMessage()
             case .loading:
                 showLoader(previousStatus: oldValue)
+                fetchCart()
             case .loaded(let items):
                 handleNewItems(items)
             case .clearing:
                 clearCart()
             case .ready(_):
                 updateView()
+            case .navigating(_):
+                showLoader()
             }
         }
     }
     var cartRepository: CartRepository!
+    var productRepository: ProductRepository!
     
+    // MARK: outlets
     @IBOutlet weak var loaderView: UIView!
     @IBOutlet weak var messageLabel: UILabel!
     @IBOutlet weak var loader: UIActivityIndicatorView!
@@ -47,28 +53,44 @@ class CartViewController: UIViewController {
     
     @IBOutlet weak var cartItemsTable: UITableView!
     
-    
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         clearCartButton.isHidden = true
         shareButton.isHidden = true
         
-        cartItemsTable.register(CartItemCell.nib, forCellReuseIdentifier: CartItemCell.nibIdentifier)
-        
-        cartItemsTable.estimatedRowHeight = 220
-        
-        cartItemsTable.dataSource = self
-        cartItemsTable.delegate = self
+        setupTableView()
         
         status = .loading
     }
+    
+    // MARK: actions
+    @IBAction func shareCart(_ sender: Any) {
+        var messageText: [String] = []
+        
+        switch status {
+        case .loaded(let model), .ready(let model):
+            messageText = model.map { $0.toText() }
+        default:
+            return
+        }
+        
+        let activityViewController = UIActivityViewController(activityItems: messageText, applicationActivities: nil)
+        activityViewController.popoverPresentationController?.sourceView = self.view
+        
+        present(activityViewController, animated: true)
+    }
+    
+    @IBAction func onClearCart(_ sender: Any) {
+        status = .clearing
+    }
+    
     
     deinit {
         cartRepository.removeObserver(id: self.hash)
     }
     
+    // MARK: - UI Updates
     func showEmptyMessage() {
         clearCartButton.isHidden = true
         shareButton.isHidden = true
@@ -79,22 +101,26 @@ class CartViewController: UIViewController {
         loaderView.alpha = 1
         loaderView.isHidden = false
         messageLabel.text = "Your cart is empty. Try searching for something!"
+        messageLabel.isHidden = false
     }
     
-    func showLoader(previousStatus: Status) {
+    func showLoader(previousStatus: Status? = nil) {
         blockButtons()
         
         loader.isHidden = false
         loader.startAnimating()
         
         loaderView.isHidden = false
+        messageLabel.isHidden = true
         
         if case .empty = previousStatus {
             loaderView.alpha = 1
         }
         
         loaderView.alpha = 0.5
-        
+    }
+    
+    func fetchCart() {
         let cartItems = cartRepository.getCart()
         status = cartItems.isEmpty ? .empty
                                    : .loaded(cartItems)
@@ -102,8 +128,10 @@ class CartViewController: UIViewController {
     
     func handleNewItems(_ items: [CartItem]) {
         clearCartButton.isHidden = false
-        clearCartButton.isEnabled = true
         shareButton.isHidden = false
+        
+        unblockButtons()
+        
         cartItemsTable.reloadData()
         
         loaderView.isHidden = true
@@ -113,15 +141,16 @@ class CartViewController: UIViewController {
     func clearCart() {
         blockButtons()
         
-        loader.isHidden = false
-        loader.startAnimating()
         loaderView.isHidden = false
         loaderView.alpha = 1
+        loader.isHidden = false
+        loader.startAnimating()
         messageLabel.text = "Clearing your cart. Please wait..."
+        messageLabel.isHidden = false
         
         do {
             try cartRepository.clearCart()
-            status = .clearing
+            status = .empty
         } catch {
             status = .loading
         }
@@ -145,13 +174,36 @@ class CartViewController: UIViewController {
     }
 }
 
+// MARK: - nib related
 extension CartViewController {
-    func injectDependencies(repository: CartRepository) {
-        cartRepository = repository
-        cartRepository.addObserver(self, id: self.hash)
+    func injectDependencies(cartRepository: CartRepository, productRepository: ProductRepository) {
+        self.cartRepository = cartRepository
+        self.productRepository = productRepository
+        self.cartRepository.addObserver(self, id: self.hash)
     }
     
     static let segueId = "SearchToCartSegue"
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        switch segue.identifier{
+        case ItemCardViewController.segueFromCartId:
+            prepareItemCardSegue(segue)
+        default:
+            break
+        }
+        status = .loading
+    }
+    
+    func prepareItemCardSegue(_ segue: UIStoryboardSegue) {
+        let itemCardVC = segue.destination as! ItemCardViewController
+        
+        switch status {
+        case .navigating(let productId):
+            itemCardVC.injectDependecies(productId: productId, cartRepository: cartRepository, productRepository: productRepository)
+        default:
+            break
+        }
+    }
 }
 
 // MARK: - Cart Observer
@@ -171,7 +223,7 @@ extension CartViewController: CartObserver {
         }
         
         let newCart = cartRepository.getCart()
-        status = .ready(newCart)
+        status = newCart.isEmpty ? .empty : .ready(newCart)
     }
     
     func onCartCleared() {

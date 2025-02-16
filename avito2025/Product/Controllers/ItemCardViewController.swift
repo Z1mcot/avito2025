@@ -227,6 +227,8 @@ class ItemCardViewController: UIViewController {
         UIView.animate(withDuration: 0.2) { [weak self] in
             self?.buyButton.isEnabled = true
             
+            self?.buyButton.setTitle("Buy", for: .normal)
+            
             self?.decrementItemQuantityButton.isHidden = true
             self?.incrementItemQuantityButton.isHidden = true
         }

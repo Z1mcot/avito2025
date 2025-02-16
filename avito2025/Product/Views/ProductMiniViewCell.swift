@@ -115,10 +115,10 @@ class ProductMiniViewCell: UICollectionViewCell {
     
     private func getImage(_ url: String) {
         Task { [weak self] in
-            let image = try? await self?.imageService.getImage(from: url)
+            var image = try? await self?.imageService.getImage(from: url)
             
             if image == nil {
-                return
+                image = UIImage(named: "Placeholder")
             }
             
             DispatchQueue.main.async {
