@@ -14,7 +14,7 @@ class CartViewController: UIViewController {
         case loading
         case loaded([CartItem])
         case clearing
-        case ready([CartItem])
+        case ready(changedItem: Product, cart: [CartItem])
         case navigating(Int)
     }
     
@@ -32,8 +32,8 @@ class CartViewController: UIViewController {
                 handleNewItems(items)
             case .clearing:
                 clearCart()
-            case .ready(_):
-                updateView()
+            case .ready(let changedItem, _):
+                updateView(with: changedItem)
             case .navigating(_):
                 showLoader()
             }
@@ -69,7 +69,7 @@ class CartViewController: UIViewController {
         var messageText: [String] = []
         
         switch status {
-        case .loaded(let model), .ready(let model):
+        case .loaded(let model), .ready(_, let model):
             messageText = [ model.map { $0.toText() }.joined(separator: "\n\n") ]
         default:
             return
@@ -156,11 +156,27 @@ class CartViewController: UIViewController {
         }
     }
     
-    func updateView() {
-        unblockButtons()
-        loaderView.isHidden = true
-        loader.stopAnimating()
-        cartItemsTable.reloadData()
+    func updateView(with item: Product) {
+        defer {
+            unblockButtons()
+            loaderView.isHidden = true
+            loader.stopAnimating()
+        }
+        
+        if item == Product.nonexistingProduct {
+            return
+        }
+        
+        guard let itemPosition = item.position else {
+            cartItemsTable.reloadData()
+            return
+        }
+        
+        if item.quantity == 0 {
+            cartItemsTable.deleteRows(at: [IndexPath(row: itemPosition - 1, section: 0)], with: .automatic)
+        } else if item.quantity == 1 {
+            cartItemsTable.insertRows(at: [IndexPath(row: itemPosition - 1, section: 0)], with: .automatic)
+        }
     }
     
     func blockButtons() {
@@ -214,7 +230,8 @@ extension CartViewController: CartObserver {
         }
         
         let newCart = cartRepository.getCart()
-        status = .ready(newCart)
+        status = .ready(changedItem: newItem, cart: newCart)
+        
     }
     
     func onItemRemoved(_ removedItem: Product) {
@@ -223,7 +240,8 @@ extension CartViewController: CartObserver {
         }
         
         let newCart = cartRepository.getCart()
-        status = newCart.isEmpty ? .empty : .ready(newCart)
+        status = newCart.isEmpty ? .empty
+                                 : .ready(changedItem: removedItem, cart: newCart)
     }
     
     func onCartCleared() {

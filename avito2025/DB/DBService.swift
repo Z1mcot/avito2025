@@ -59,7 +59,7 @@ class DBService {
     
     // MARK: - Product methods
     
-    func getById(_ item: Product) throws -> NSManagedObject {
+    func get(one item: Product) throws -> NSManagedObject {
         let fetchRequest = CartItem.fetchRequest()
         
         fetchRequest.predicate = NSPredicate(format: "itemId == %d", item.id)
@@ -101,7 +101,7 @@ class DBService {
     }
     
     func update(_ item: Product) throws {
-        let entity = try getById(item) as! CartItem
+        let entity = try get(one: item) as! CartItem
         
         entity.quantity = Int64(item.quantity)
         
@@ -113,7 +113,7 @@ class DBService {
     }
     
     func delete(_ item: Product) throws {
-        let entity = try getById(item)
+        let entity = try get(one: item)
         
         container.viewContext.delete(entity)
         try container.viewContext.save()
@@ -155,7 +155,7 @@ class DBService {
     
     // MARK: - SearchQueries methods
     
-    func getById(_ query: ProductFilters) throws -> NSManagedObject {        
+    func get(one query: ProductFilters) throws -> NSManagedObject {
         guard let queryTitle = query.title else {
             throw DBError.itemNotFound
         }
@@ -201,7 +201,7 @@ class DBService {
     
     // We should update only last access date, otherwise it would be a new query
     func update(_ query: ProductFilters) throws {
-        let entity = try getById(query) as! LastSearchQuery
+        let entity = try get(one: query) as! LastSearchQuery
         
         entity.lastAccess = Date.now
         

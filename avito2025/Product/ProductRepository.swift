@@ -43,7 +43,7 @@ class ProductRepository {
         let route = ProductRouter.getProductById(id: id)
         var model = try await sendRequest(route, for: Product.self)
         
-        let entity = try? dbService.getById(model) as? CartItem
+        let entity = try? dbService.get(one: model) as? CartItem
         if entity != nil {
             model.set(newQuantity: Int(entity!.quantity))
         }

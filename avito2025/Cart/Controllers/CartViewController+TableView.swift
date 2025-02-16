@@ -22,7 +22,7 @@ extension CartViewController: UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch status {
-        case .loaded(let items), .ready(let items):
+        case .loaded(let items), .ready(_, let items):
             return items.count
         default:
             return 0
@@ -33,7 +33,7 @@ extension CartViewController: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: CartItemCell.nibIdentifier, for: indexPath) as! CartItemCell
         
         switch status {
-        case .loaded(let items), .ready(let items):
+        case .loaded(let items), .ready(_, let items):
             let item = items[indexPath.row]
             cell.injectDependencies(item: item, repository: cartRepository)
         default:
@@ -48,7 +48,7 @@ extension CartViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         switch status {
-        case .loaded(let items), .ready(let items):
+        case .loaded(let items), .ready(_, let items):
             status = .navigating(Int(items[indexPath.row].itemId))
             performSegue(withIdentifier: ItemCardViewController.segueFromCartId, sender: self)
         default:
@@ -58,14 +58,14 @@ extension CartViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         switch status {
-        case .loaded(let items), .ready(let items):
+        case .loaded(let items), .ready(_, let items):
             var items = items
             let mover = items.remove(at: sourceIndexPath.row)
             items.insert(mover, at: destinationIndexPath.row)
             
             try? cartRepository.movePosition(item: items[sourceIndexPath.row], to: destinationIndexPath.row)
             
-            status = .ready(items)
+            status = .ready(changedItem: Product.nonexistingProduct, cart: items)
         default:
             break
         }
@@ -79,7 +79,7 @@ extension CartViewController: UITableViewDragDelegate {
         let dragItem = UIDragItem(itemProvider: NSItemProvider())
         
         switch status {
-        case .loaded(let items), .ready(let items):
+        case .loaded(let items), .ready(_, let items):
             let item = items[indexPath.row]
             dragItem.localObject = item
         default:

@@ -6,5 +6,6 @@
 //
 
 struct Constants {
-    static let baseUrl = "https://api.escuelajs.co/api/v1"
+//    static let baseUrl = "https://api.escuelajs.co/api/v1"
+    static let baseUrl = "http://165.227.238.45:3001/api/v1"
 }

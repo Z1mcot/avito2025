@@ -30,6 +30,15 @@ class CartRepository {
         observers[id] = nil
     }
     
+    /// Should be used only after getting message inside `CartObserver` `onItemAdded`
+    func getItem(by model: Product) -> CartItem {
+        let item = try? dbService.get(one: model)
+        
+        assert(item != nil, "No item with such model. Model: \(model)")
+        
+        return item as! CartItem
+    }
+    
     func getCart() -> [CartItem] {
         let sort = NSSortDescriptor(key: #keyPath(CartItem.position), ascending: true)
         
@@ -60,11 +69,17 @@ class CartRepository {
     }
     
     func removeFromCart(product: Product) throws {
-        product.quantity == 0 ? try dbService.delete(product)
-                              : try dbService.update(product)
+        var mutableProduct = product
+        if mutableProduct.quantity == 0 {
+            let entity = try dbService.get(one: mutableProduct) as! CartItem
+            mutableProduct.position = Int(entity.position)
+            try dbService.delete(mutableProduct)
+        } else {
+            try dbService.update(mutableProduct)
+        }
         
         for observer in observers.values {
-            observer.onItemRemoved(product)
+            observer.onItemRemoved(mutableProduct)
         }
     }
     

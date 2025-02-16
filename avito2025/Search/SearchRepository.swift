@@ -38,7 +38,7 @@ class SearchRepository {
             return
         }
         
-        let item = try? dbService.getById(query)
+        let item = try? dbService.get(one: query)
         
         item == nil ? try dbService.add(query)
                     : try dbService.update(query)

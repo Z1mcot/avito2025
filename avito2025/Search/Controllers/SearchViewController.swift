@@ -252,12 +252,22 @@ extension SearchViewController {
         
         productsCollection.isHidden = false
         
-        if products.isEmpty {
+        let lastItemIdx = products.count
+        products.append(contentsOf: items)
+        
+        if lastItemIdx == 0 {
             productsCollection.setContentOffset(.zero, animated: false)
+            productsCollection.reloadData()
+        } else {
+            var newIndexPaths: [IndexPath] = []
+            for idx in 0..<items.count {
+                let newIndexPath = IndexPath(item: lastItemIdx + idx, section: 0)
+                newIndexPaths.append(newIndexPath)
+            }
+            
+            productsCollection.insertItems(at: newIndexPaths)
         }
         
-        products.append(contentsOf: items)
-        productsCollection.reloadData()
         productsCollection.isScrollEnabled = true
     }
     
