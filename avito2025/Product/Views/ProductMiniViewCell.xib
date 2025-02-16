@@ -11,59 +11,116 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
         <collectionViewCell opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" reuseIdentifier="ProductMiniViewCellReusable" id="Alo-oJ-Voe" customClass="ProductMiniViewCell" customModule="avito2025" customModuleProvider="target">
-            <rect key="frame" x="0.0" y="0.0" width="275" height="308"/>
+            <rect key="frame" x="0.0" y="0.0" width="275" height="427"/>
             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
             <collectionViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" id="vHu-Zb-HwF">
-                <rect key="frame" x="0.0" y="0.0" width="275" height="308"/>
+                <rect key="frame" x="0.0" y="0.0" width="275" height="427"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="oNJ-sn-BRU">
-                        <rect key="frame" x="8" y="8" width="259" height="292"/>
+                        <rect key="frame" x="8" y="8" width="259" height="411"/>
                         <subviews>
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFill" verticalHuggingPriority="249" verticalCompressionResistancePriority="749" image="TestImage" translatesAutoresizingMaskIntoConstraints="NO" id="CfT-7p-dhi">
-                                <rect key="frame" x="0.0" y="0.0" width="259" height="245"/>
+                                <rect key="frame" x="0.0" y="0.0" width="259" height="315.66666666666669"/>
                             </imageView>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="sd6-WD-fi9">
-                                <rect key="frame" x="0.0" y="245" width="259" height="12"/>
+                                <rect key="frame" x="0.0" y="315.66666666666669" width="259" height="12"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="12" id="9j2-8G-w58"/>
                                 </constraints>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalCompressionResistancePriority="751" text="Handmade Fresh Table" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.75" translatesAutoresizingMaskIntoConstraints="NO" id="8Bx-KH-zwj">
-                                <rect key="frame" x="0.0" y="257" width="259" height="18"/>
+                                <rect key="frame" x="0.0" y="327.66666666666669" width="259" height="18"/>
                                 <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
                                 <color key="textColor" name="TextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.75" translatesAutoresizingMaskIntoConstraints="NO" id="vyI-9z-V1f">
-                                <rect key="frame" x="0.0" y="275" width="259" height="17"/>
+                                <rect key="frame" x="0.0" y="345.66666666666669" width="259" height="17"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="E5h-GZ-Q16" userLabel="Placeholder">
+                                <rect key="frame" x="0.0" y="362.66666666666669" width="259" height="14"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="14" id="1sv-Yb-hd6"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="GMW-Ke-kBk">
+                                <rect key="frame" x="0.0" y="376.66666666666669" width="259" height="34.333333333333314"/>
+                                <subviews>
+                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="cQc-dS-PvR">
+                                        <rect key="frame" x="0.0" y="0.0" width="0.0" height="34.333333333333336"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="-"/>
+                                        <connections>
+                                            <action selector="onDecrementItemCount:" destination="Alo-oJ-Voe" eventType="touchUpInside" id="Job-83-KBe"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iTt-Wy-oae">
+                                        <rect key="frame" x="0.0" y="0.0" width="259" height="34.333333333333336"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="Buy">
+                                            <color key="baseForegroundColor" name="BackgroundColor"/>
+                                        </buttonConfiguration>
+                                        <connections>
+                                            <action selector="onBuyItem:" destination="Alo-oJ-Voe" eventType="touchUpInside" id="nJc-bO-gfZ"/>
+                                        </connections>
+                                    </button>
+                                    <button hidden="YES" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="YDk-Zx-zyq">
+                                        <rect key="frame" x="0.0" y="0.0" width="0.0" height="34.333333333333336"/>
+                                        <state key="normal" title="Button"/>
+                                        <buttonConfiguration key="configuration" style="plain" title="+"/>
+                                        <connections>
+                                            <action selector="onIncrementItemCount:" destination="Alo-oJ-Voe" eventType="touchUpInside" id="Umv-E7-DfF"/>
+                                        </connections>
+                                    </button>
+                                </subviews>
+                                <color key="backgroundColor" name="AccentColor"/>
+                            </stackView>
                         </subviews>
                     </stackView>
+                    <view hidden="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="eeo-vG-jXS" customClass="SkeletonLoaderView" customModule="avito2025" customModuleProvider="target">
+                        <rect key="frame" x="4" y="4" width="267" height="419"/>
+                        <color key="backgroundColor" name="BackgroundColor"/>
+                    </view>
                 </subviews>
                 <color key="backgroundColor" name="BackgroundColor"/>
                 <constraints>
+                    <constraint firstItem="eeo-vG-jXS" firstAttribute="top" secondItem="vHu-Zb-HwF" secondAttribute="top" constant="4" id="0fQ-dU-cE3"/>
                     <constraint firstAttribute="bottom" secondItem="oNJ-sn-BRU" secondAttribute="bottom" constant="8" id="5uz-3E-Sym"/>
                     <constraint firstAttribute="trailing" secondItem="oNJ-sn-BRU" secondAttribute="trailing" constant="8" id="IcC-FX-3nd"/>
+                    <constraint firstAttribute="trailing" secondItem="eeo-vG-jXS" secondAttribute="trailing" constant="4" id="NYl-6u-7BA"/>
                     <constraint firstItem="oNJ-sn-BRU" firstAttribute="top" secondItem="vHu-Zb-HwF" secondAttribute="top" constant="8" id="cCE-XN-0aY"/>
                     <constraint firstItem="oNJ-sn-BRU" firstAttribute="leading" secondItem="vHu-Zb-HwF" secondAttribute="leading" constant="8" id="dHt-9K-G7Z"/>
+                    <constraint firstAttribute="bottom" secondItem="eeo-vG-jXS" secondAttribute="bottom" constant="4" id="h1F-Ef-sDR"/>
+                    <constraint firstItem="eeo-vG-jXS" firstAttribute="leading" secondItem="vHu-Zb-HwF" secondAttribute="leading" constant="4" id="sBM-wM-1bL"/>
                 </constraints>
             </collectionViewCellContentView>
-            <size key="customSize" width="275" height="308"/>
+            <size key="customSize" width="275" height="427"/>
             <connections>
+                <outlet property="buttonStackView" destination="GMW-Ke-kBk" id="fMb-xP-jEU"/>
+                <outlet property="buyButton" destination="iTt-Wy-oae" id="eOD-a2-MJs"/>
+                <outlet property="decrementButton" destination="cQc-dS-PvR" id="0q4-sW-kgN"/>
+                <outlet property="incrementButton" destination="YDk-Zx-zyq" id="gZt-MD-XRv"/>
                 <outlet property="priceTag" destination="vyI-9z-V1f" id="pg4-dm-iJ1"/>
                 <outlet property="productBackgroundView" destination="vHu-Zb-HwF" id="gIW-57-QZp"/>
                 <outlet property="productImageView" destination="CfT-7p-dhi" id="lQW-YX-N0a"/>
                 <outlet property="productName" destination="8Bx-KH-zwj" id="Sie-9Z-UwP"/>
+                <outlet property="skeletonView" destination="eeo-vG-jXS" id="XbD-Bj-2rU"/>
             </connections>
-            <point key="canvasLocation" x="-8.3969465648854964" y="28.169014084507044"/>
+            <point key="canvasLocation" x="-8.3969465648854964" y="70.070422535211264"/>
         </collectionViewCell>
     </objects>
     <resources>
         <image name="TestImage" width="1080" height="1080"/>
+        <namedColor name="AccentColor">
+            <color red="0.0" green="0.46000000000000002" blue="0.89000000000000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
         <namedColor name="BackgroundColor">
             <color red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
