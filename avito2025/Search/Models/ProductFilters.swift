@@ -47,7 +47,8 @@ struct ProductFilters: URLQueryConvertable, Equatable {
     func convertToQueryParams() -> [URLQueryItem] {
         var parameters: [URLQueryItem] = []
         
-        if let title = title {
+        if let title = title,
+           !title.isEmpty {
             parameters.append(URLQueryItem(name: "title", value: title))
         }
         

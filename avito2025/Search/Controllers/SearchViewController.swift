@@ -229,16 +229,17 @@ extension SearchViewController {
     
     func handleLoading(oldStatus: SearchStatus, currentFilters: ProductFilters) {
         productsCollection.isHidden = false
-        productsCollection.isScrollEnabled = currentPage.offset != 0
         
         searchBar.isEnabled = false
         
         if case .loaded(_, let oldFilters) = oldStatus, oldFilters == currentFilters {
             currentPage = currentPage.next()
+            productsCollection.isScrollEnabled = true
         } else {
             currentPage = Pagination()
             products = []
             productsCollection.reloadData()
+            productsCollection.isScrollEnabled = false
         }
         
         Task {
@@ -250,6 +251,11 @@ extension SearchViewController {
         searchBar.isEnabled = true
         
         productsCollection.isHidden = false
+        
+        if products.isEmpty {
+            productsCollection.setContentOffset(.zero, animated: false)
+        }
+        
         products.append(contentsOf: items)
         productsCollection.reloadData()
         productsCollection.isScrollEnabled = true
