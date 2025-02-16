@@ -70,7 +70,7 @@ class CartViewController: UIViewController {
         
         switch status {
         case .loaded(let model), .ready(let model):
-            messageText = model.map { $0.toText() }
+            messageText = [ model.map { $0.toText() }.joined(separator: "\n\n") ]
         default:
             return
         }
