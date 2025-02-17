@@ -51,7 +51,7 @@ extension SearchViewController: UICollectionViewDelegateFlowLayout {
         collectionView.deselectItem(at: indexPath, animated: false)
         
         switch status {
-        case .loaded(_, _):
+        case .empty, .loaded(_, _):
             selectedId = products[indexPath.item].id
             performSegue(withIdentifier: ItemCardViewController.segueFromSearchId, sender: self)
         default :
